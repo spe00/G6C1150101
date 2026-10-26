@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>勇者鬥惡龍：六年級國語文試煉大冒險</title>
+    <style>
+        :root {
+            --bg-dark: #141726;
+            --panel-bg: #22263a;
+            --border-gold: #f1c40f;
+            --text-light: #f5f6fa;
+            --accent-blue: #3498db;
+            --accent-green: #2ecc71;
+            --accent-red: #e74c3c;
+            --selected-bg: #2980b9;
+        }
+        * {
+            box-sizing: border-box;
+            font-family: "Microsoft JhengHei", "PingFang TC", sans-serif;
+        }
+        body {
+            background: radial-gradient(circle at top, #1f2742 0%, var(--bg-dark) 100%);
+            color: var(--text-light);
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .game-container {
+            width: 100%;
+            max-width: 880px;
+            background-color: var(--panel-bg);
+            border: 4px solid var(--border-gold);
+            border-radius: 18px;
+            padding: 24px;
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.7);
+            position: relative;
+        }
+        /* 頂部狀態列 */
+        .header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 14px 20px;
+            border-radius: 12px;
+            border: 2px solid #485460;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .stat-box {
+            font-size: 1.15rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .score-highlight {
+            color: var(--border-gold);
+            font-size: 1.5rem;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+        .controls-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+            background: rgba(255,255,255,0.04);
+            padding: 10px 16px;
+            border-radius: 10px;
+        }
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1rem;
+        }
+        select, .jump-select {
+            background: #2f3640;
+            color: #fff;
+            border: 1px solid var(--border-gold);
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+        /* 魔王舞台區 */
+        .monster-stage {
+            background: linear-gradient(135deg, #192a56, #0c1836);
+            border: 3px solid var(--border-gold);
+            border-radius: 14px;
+            padding: 16px;
+            text-align: center;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        .monster-icon {
+            font-size: 4rem;
+            margin-bottom: 4px;
+            display: inline-block;
+            animation: float 2.4s ease-in-out infinite;
+            transition: transform 0.2s;
+        }
+        .monster-hit {
+            animation: hitShake 0.4s ease-in-out !important;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+        }
+        @keyframes hitShake {
+            0%, 100% { transform: translateX(0) scale(1); }
+            25% { transform: translateX(-12px) scale(0.9) rotate(-8deg); filter: brightness(2) hue-rotate(90deg); }
+            75% { transform: translateX(12px) scale(1.1) rotate(8deg); }
+        }
+        .monster-name {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #ffda79;
+            margin-bottom: 8px;
+        }
+        .hp-bar-outer {
+            width: 80%;
+            max-width: 420px;
+            height: 16px;
+            background: #2f3640;
+            border-radius: 10px;
+            margin: 0 auto;
+            border: 2px solid #dcdde1;
+            overflow: hidden;
+        }
+        .hp-bar-inner {
+            height: 100%;
+            background: linear-gradient(90deg, #ff5252, #ff793f);
+            width: 100%;
+            transition: width 0.4s ease;
+        }
+        /* 題目與選項區 */
+        .question-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid #57606f;
+            border-radius: 14px;
+            padding: 22px;
+        }
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+        .question-text {
+            font-size: 1.4rem;
+            line-height: 1.65;
+            font-weight: bold;
+            flex: 1;
+            letter-spacing: 0.5px;
+        }
+        .tts-btn {
+            background-color: #f39c12;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-size: 1.05rem;
+            font-weight: bold;
+            cursor: pointer;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 4px 0 #d68910;
+            transition: transform 0.1s;
+        }
+        .tts-btn:hover {
+            background-color: #f1c40f;
+            color: #1e272e;
+        }
+        .tts-btn:active {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 #d68910;
+        }
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .option-row {
+            display: flex;
+            align-items: stretch;
+            gap: 10px;
+        }
+        .option-btn {
+            flex: 1;
+            background-color: #2f3640;
+            color: var(--text-light);
+            border: 2px solid #718093;
+            border-radius: 12px;
+            padding: 15px 20px;
+            font-size: 1.25rem;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s;
+            line-height: 1.45;
+        }
+        .option-btn:hover:not(:disabled) {
+            background-color: #3d4656;
+            border-color: var(--border-gold);
+        }
+        .option-btn.selected {
+            background-color: var(--selected-bg);
+            border-color: var(--border-gold);
+            box-shadow: 0 0 14px rgba(241, 196, 15, 0.55);
+            font-weight: bold;
+        }
+        .option-btn.correct {
+            background-color: #218c74 !important;
+            border-color: #33d9b2 !important;
+            color: #fff !important;
+        }
+        .option-btn.wrong {
+            background-color: #b33939 !important;
+            border-color: #ff5252 !important;
+            color: #fff !important;
+        }
+        .action-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            margin-top: 22px;
+        }
+        .submit-btn, .next-btn {
+            width: 100%;
+            padding: 16px;
+            font-size: 1.35rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .submit-btn {
+            background-color: var(--accent-green);
+            color: #1e272e;
+            box-shadow: 0 5px 0 #218c74;
+        }
+        .submit-btn:disabled {
+            background-color: #57606f;
+            color: #a4b0be;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        .next-btn {
+            background-color: var(--border-gold);
+            color: #1e272e;
+            box-shadow: 0 5px 0 #b7950b;
+            display: none;
+        }
+        .feedback-box {
+            margin-top: 18px;
+            padding: 16px 20px;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            display: none;
+            line-height: 1.6;
+        }
+        .feedback-correct {
+            background-color: rgba(46, 204, 113, 0.2);
+            border: 2px solid var(--accent-green);
+            color: #7bed9f;
+        }
+        .feedback-wrong {
+            background-color: rgba(231, 76, 60, 0.2);
+            border: 2px solid var(--accent-red);
+            color: #ff7f50;
+        }
+        .footer-credit {
+            margin-top: 16px;
+            font-size: 0.95rem;
+            color: #a4b0be;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<div class="game-container" id="game-box">
+    <div class="header-bar">
+        <div class="stat-box">🛡️ 勇者稱號：<span id="hero-title">🌱 見習冒險者</span></div>
+        <div class="stat-box">⚔️ 試煉進度：<span id="progress-text">1 / 39</span></div>
+        <div class="stat-box">💎 累計積分：<span class="score-highlight" id="score-text">0</span> / 100</div>
+    </div>
+
+    <div class="controls-bar">
+        <div class="speed-control">
+            <span>🗣️ 報讀語速：</span>
+            <select id="tts-rate">
+                <option value="0.75">慢速 (0.75x)</option>
+                <option value="0.9" selected>適中 (0.9x)</option>
+                <option value="1.05">正常 (1.05x)</option>
+            </select>
+        </div>
+        <div class="speed-control">
+            <span>🗺️ 快速跳題：</span>
+            <select id="jump-select" class="jump-select" onchange="jumpToQuestion(this.value)"></select>
+        </div>
+    </div>
+
+    <div class="monster-stage">
+        <div class="monster-icon" id="monster-icon">🐉</div>
+        <div class="monster-name" id="monster-name">第一關：字詞迷宮守衛 (每題2分)</div>
+        <div class="hp-bar-outer">
+            <div class="hp-bar-inner" id="hp-bar"></div>
+        </div>
+    </div>
+
+    <div class="question-card">
+        <div class="question-header">
+            <div class="question-text" id="question-text">載入題目中...</div>
+            <button class="tts-btn" onclick="speakQuestion()">🔊 報讀題目</button>
+        </div>
+
+        <div class="options-list" id="options-container"></div>
+
+        <div class="feedback-box" id="feedback-box"></div>
+
+        <div class="action-bar">
+            <button class="submit-btn" id="submit-btn" onclick="confirmAnswer()" disabled>⚔️ 確認答案並發動攻擊</button>
+            <button class="next-btn" id="next-btn" onclick="nextQuestion()">➡️ 前往下一關</button>
+        </div>
+    </div>
+
+    <div class="footer-credit">
+        屏東縣九如鄉後庄國民小學 115學年度第一學期 六年級國語文期中評量 互動冒險試煉
+    </div>
+</div>
+
+<script>
+const questions = [
+    // 一、選擇題 (每題2分，共34分)
+    {
+        section: "第一關：字詞迷宮守衛 (選擇題・每題2分)",
+        icon: "🐉",
+        points: 2,
+        q: "第一大題第1題：下面哪一個「 」中的語詞改變位置或句子改寫後，句意會改變？",
+        options: [
+            "①「雪白」的雲 → 雲十分「雪白」",
+            "②寄給未來的「自己」 → 把「自己」寄給未來",
+            "③「覓食」的小魚 → 小魚在「覓食」",
+            "④「自由自在」的蝴蝶 → 蝴蝶非常「自由自在」"
+        ],
+        answer: 1,
+        exp: "「寄給未來的自己」是寄信或物品給未來的自己；「把自己寄給未來」則是把自身當作寄送物，句意改變了。"
+    },
+    {
+        section: "第一關：字詞迷宮守衛 (選擇題・每題2分)",
+        icon: "🐉",
+        points: 2,
+        q: "第一大題第2題：請選出錯誤的敘述：",
+        options: [
+            "①「註」和「儲」都是「言」部",
+            "②「儲存」是指積聚存放",
+            "③「誠摯」和「真摯」的「摯」都是「誠懇」的意思",
+            "④作者透過提出疑問的方式來幫助讀者自我省思"
+        ],
+        answer: 0,
+        exp: "「註」是言部，但「儲」是人部，不是言部。"
+    },
+    {
+        section: "第一關：字詞迷宮守衛 (選擇題・每題2分)",
+        icon: "🐉",
+        points: 2,
+        q: "第一大題第3題：「我感覺到真正的孤獨了□不管是誰□遇到像我一樣的情形□一定也會覺得自己孤單□可憐□」根據《為什麼大家不理我？》課文，□中依序填入下面哪一組標點符號最適當？",
+        options: [
+            "① 。 ， ， 、 。",
+            "② ， 、 ， ， ！",
+            "③ ！ ， ， 、 。",
+            "④ 。 ， 、 ， 。"
+        ],
+        answer: 0,
+        exp: "完整句子後用句號「。」，分句停頓用逗號「，」，「孤單、可憐」為並列語詞用頓號「、」，句末用句號「。」。"
+    },
+    {
+        section: "第一關：字詞迷宮守衛 (選擇題・每題2分)",
+        icon: "🐉",
+        points: 2,
+        q: "第一大題第4題：請選出錯誤的敘述：",
+        options: [
+            "①「霸」和「雷」都是「雨」部",
+            "②「奧妙」是指深奧奇妙",
+            "③「仿照」和「結構」都是動詞",
+            "④打針時的疼痛，往往比被蚊子叮來得有感"
+        ],
+        answer: 2,
+        exp: "「仿照」是動詞，但「結構」一般作為名詞使用。"
+    },
+    {
+        section: "第一關：字詞迷宮守衛 (選擇題・每題2分)",
+        icon: "🐉",
+        points: 2,
+        q: "第一大題第5題：下面哪一個「 」中的語詞使用錯誤？",
+        options: [
+            "①你越「急躁」的處理事情，失敗機率就越高",
+            "②老師一句提醒，全班「霎時」完全靜音",
+            "③早晨的露水打溼了我的「衣襟」",
+            "④鳥兒喜歡站在「樹幹」上唱歌"
+        ],
+        answer: 3,
+        exp: "鳥兒通常站在「樹枝」或「枝頭」上唱歌，而非粗大的「樹幹」。"
+    },
+    {
+        section: "第一關：字詞迷宮守衛 (選擇題・每題2分)",
+        icon: "🐉",
+        points: 2,
+        q: "第一大題第6題：「你可以從實踐經驗中獲得知識。」句子中的「獲得」，用下面哪一個語詞替換，意思會改變？",
+        options: [
+            "①得到",
+            "②取得",
+            "③喪失",
+            "④獲取"
+        ],
+        answer: 2,
+        exp: "「喪失」是失去的意思，與「獲得」相反。"
+    },
+    {
+        section: "第一關：字詞迷宮守衛 (選擇題・每題2分)",
+        icon: "🐉",
+        points: 2,
+        q: "第一大題第7題：(甲)牢「固」 (乙)「固」有 (丙)「固」定 (丁)堅「固」，上面「 」中的字義關係為：",
+        options: [
+            "①甲丙相同",
+            "②乙丁相同",
+            "③乙丙相同",
+            "④甲丁相同"
+        ],
+        answer: 3,
+        exp: "(甲)牢固與(丁)堅固的「固」都是結實、牢靠的意思；(乙)固有是本來就有的；(丙)固定是不變動。"
+    },
+    {
+        section: "第一關：字詞迷宮守衛 (選擇題・每題2分)",
+        icon: "🐉",
+        points: 2,
+        q: "第一大題第8題：下面有關句子與寫作技巧的配對，哪一個不正確？",
+        options: [
+            "①等風停時搖晃的表情／會扮鬼臉還是笑咪咪：設問",
+            "②摘一片雪白的雲／擦亮誠懇的心靈／迎向太陽把幽暗抹成光明：轉化",
+            "③想學習又貪玩的心情：類疊",
+            "④能不能破蛹飛起／張開夢想的彩翼：轉化"
+        ],
+        answer: 2,
+        exp: "「想學習又貪玩的心情」是映襯（對比）矛盾的心情，並沒有使用重複字詞的「類疊」修辭。"
+    },
+    {
+        section: "第一關：字詞迷宮守衛 (選擇題・每題2分)",
+        icon: "🐉",
+        points: 2,
+        q: "第一大題第9題：下面哪一個短語的詞性結構是「副詞＋動詞」？",
+        options: [
+            "①白色花朵",
+            "②記憶深處",
+            "③依稀聽見",
+            "④樹影搖晃"
+        ],
+        answer: 2,
+        exp: "「依稀」（副詞，模模糊糊地）＋「聽見」（動詞）。"
+    },
+    {
+        section: "第一關：字詞迷宮守衛 (選擇題・每題2分)",
+        icon: "🐉",
+        points: 2,
+        q: "第一大題第10題：下面哪一個短語的詞性結構和「擁有足夠的自信心」相似？",
+        options: [
+            "①容易引起反感",
+            "②具有幽默感的自嘲",
+            "③運用自嘲得適可而止",
+            "④敏銳且有智慧的人"
+        ],
+        answer: 1,
+        exp: "「擁有足夠的自信心」與「具有幽默感的自嘲」結構對應。"
+    },
+    {
+        section: "第一關：字詞迷宮守衛 (選擇題・每題2分)",
+        icon: "🐉",
+        points: 2,
+        q: "第一大題第11題：「不□菽麥」中應填入哪個字？",
+        options: [
+            "①辮",
+            "②辦",
+            "③辨",
+            "④瓣"
+        ],
+        answer: 2,
+        exp: "成語「不辨菽麥」指分不清豆子和麥子，應填入辨別的「辨」。"
+    },
+    {
+        section: "第一關：字詞迷宮守衛 (選擇題・每題2分)",
+        icon: "🐉",
+        points: 2,
+        q: "第一大題第12題：根據《為什麼大家不理我？》一課，作者透過分享自己的經驗想要告訴他的孩子什麼事情？",
+        options: [
+            "①享受別人對他的歡迎",
+            "②要與人斤斤計較才不會吃虧",
+            "③成為不怕寂寞、又能堅強處理問題的人",
+            "④受到冷落時，也不理會別人"
+        ],
+        answer: 2,
+        exp: "作者希望孩子學會面對孤獨，成為不怕寂寞並能堅強解決問題的人。"
+    },
+    {
+        section: "第一關：字詞迷宮守衛 (選擇題・每題2分)",
+        icon: "🐉",
+        points: 2,
+        q: "第一大題第13題：根據《孔子說的話》一課，下面哪一個選項是閱讀《論語》的好處？",
+        options: [
+            "①學習待人接物之道",
+            "②與更好的朋友相遇",
+            "③認識大自然",
+            "④了解孔子的生長背景"
+        ],
+        answer: 0,
+        exp: "閱讀《論語》可以從孔子的言行中學習待人處事、求學與修養之道。"
+    },
+    {
+        section: "第一關：字詞迷宮守衛 (選擇題・每題2分)",
+        icon: "🐉",
+        points: 2,
+        q: "第一大題第14題：根據《遇見自己》一課，作者問耀眼的陽光什麼事情？",
+        options: [
+            "①如何享受自在的當下",
+            "②優、缺點如何產生",
+            "③能不能找到真摯的友情",
+            "④為什麼天氣這麼熱"
+        ],
+        answer: 2,
+        exp: "課文中作者向耀眼的陽光提問，關於能否找到真摯的友情。"
+    },
+    {
+        section: "第一關：字詞迷宮守衛 (選擇題・每題2分)",
+        icon: "🐉",
+        points: 2,
+        q: "第一大題第15題：在《善用自嘲，展現幽默》一課中，林肯如何回應道格拉斯的批評？",
+        options: [
+            "①自嘲自己的長相不佳",
+            "②加倍奉還的攻擊道格拉斯",
+            "③換別的主題繼續說明",
+            "④忽略道格拉斯的批評"
+        ],
+        answer: 0,
+        exp: "林肯自嘲道：「如果我有兩張臉，我還需要戴著這張醜臉出來見人嗎？」以自嘲長相化解批評。"
+    },
+    {
+        section: "第一關：字詞迷宮守衛 (選擇題・每題2分)",
+        icon: "🐉",
+        points: 2,
+        q: "第一大題第16題：根據《驚蟄驅蟻記》一課，「驚蟄」在哪一個季節？",
+        options: [
+            "①春天",
+            "②夏天",
+            "③秋天",
+            "④冬天"
+        ],
+        answer: 0,
+        exp: "「驚蟄」是二十四節氣中的第三個節氣，位於春季。"
+    },
+    {
+        section: "第一關：字詞迷宮守衛 (選擇題・每題2分)",
+        icon: "🐉",
+        points: 2,
+        q: "第一大題第17題：在《善用自嘲，展現幽默》一課中，作者認為想要適當的自嘲，需要具備什麼？",
+        options: [
+            "①許多的缺點",
+            "②自信心",
+            "③表達力",
+            "④高智商"
+        ],
+        answer: 1,
+        exp: "作者強調懂得自嘲的人，內心必須擁有足夠的「自信心」。"
+    },
+
+    // 二、語意測驗 (每題3分，共66分)
+    {
+        section: "第二關：語意魔王城 (語意測驗・每題3分)",
+        icon: "👹",
+        points: 3,
+        q: "第二大題第1題：下面哪一個可以用「耀眼」來形容？",
+        options: [
+            "①專心看著電視節目",
+            "②伸手不見五指",
+            "③陽光十分刺眼，張不開眼睛",
+            "④突然打來的電話聲"
+        ],
+        answer: 2,
+        exp: "「耀眼」指光線強烈刺眼，因此選「陽光十分刺眼，張不開眼睛」。"
+    },
+    {
+        section: "第二關：語意魔王城 (語意測驗・每題3分)",
+        icon: "👹",
+        points: 3,
+        q: "第二大題第2題：「他是一個好強的人，無論什麼困難，都會想盡辦法去克服。」上面這句話的意思是什麼？",
+        options: [
+            "①遇到困難時，他因為好面子才想辦法解決問題",
+            "②不管發生什麼困難，他都想不出方法克服",
+            "③想方設法解決困難的人是好強的人",
+            "④不管遇到什麼困難，他都會想方設法去解決"
+        ],
+        answer: 3,
+        exp: "「無論什麼困難，都會想盡辦法去克服」即不管遇到什麼困難，都會想方設法解決。"
+    },
+    {
+        section: "第二關：語意魔王城 (語意測驗・每題3分)",
+        icon: "👹",
+        points: 3,
+        q: "第二大題第3題：下面哪一個可以用「輕柔」來形容？",
+        options: [
+            "①綜合數種味道的精油",
+            "②動人好聽的歌聲",
+            "③呼嘯而過的車輛",
+            "④七嘴八舌的討論"
+        ],
+        answer: 1,
+        exp: "「輕柔」意為輕細柔和，可用來形容動人好聽的歌聲。"
+    },
+    {
+        section: "第二關：語意魔王城 (語意測驗・每題3分)",
+        icon: "👹",
+        points: 3,
+        q: "第二大題第4題：「姐姐和同學間的真摯友情不會因為一些小事而受到影響。」上面這句話的意思是什麼？",
+        options: [
+            "①姐姐和同學間的真摯友情受到家人的限制",
+            "②姐姐和同學間的真摯友情非常堅定",
+            "③姐姐和同學間的真摯友情是虛偽不誠懇的",
+            "④姐姐和同學間的真摯友情容易被小事撼動"
+        ],
+        answer: 1,
+        exp: "友情不會因為小事受影響，代表她們的友情非常堅定。"
+    },
+    {
+        section: "第二關：語意魔王城 (語意測驗・每題3分)",
+        icon: "👹",
+        points: 3,
+        q: "第二大題第5題：下面哪一個可以用「伴隨」來形容？",
+        options: [
+            "①採摘成熟的果實",
+            "②選出符合主題的作品",
+            "③雨勢在颱風過後傾盆而下",
+            "④教室傳來吵雜的說話聲"
+        ],
+        answer: 2,
+        exp: "「伴隨」指隨同、跟隨發生，如颱風伴隨著傾盆大雨。"
+    },
+    {
+        section: "第二關：語意魔王城 (語意測驗・每題3分)",
+        icon: "👹",
+        points: 3,
+        q: "第二大題第6題：有關「憤慨」的「憤」，正確的讀音及解釋為何？",
+        options: [
+            "①ㄈㄣˋ；心中想了解卻有困難",
+            "②ㄆㄣ；具湧射功能的",
+            "③ㄈㄣˋ；因心中不滿而動怒、生氣",
+            "④ㄈㄣˇ；怒氣、怨恨"
+        ],
+        answer: 2,
+        exp: "「憤慨」的「憤」讀作「ㄈㄣˋ」，意思是因心中不滿而動怒、生氣。"
+    },
+    {
+        section: "第二關：語意魔王城 (語意測驗・每題3分)",
+        icon: "👹",
+        points: 3,
+        q: "第二大題第7題：有關「搖晃」的「晃」，正確的讀音及解釋為何？",
+        options: [
+            "①ㄏㄨㄤˇ；閃耀、照耀",
+            "②ㄏㄨㄤˇ；很快閃過",
+            "③ㄏㄨㄤˋ；搖擺、搖動",
+            "④ㄏㄨㄤˋ；明亮、光亮"
+        ],
+        answer: 2,
+        exp: "「搖晃」的「晃」讀作四聲「ㄏㄨㄤˋ」，意思是搖擺、搖動。"
+    },
+    {
+        section: "第二關：語意魔王城 (語意測驗・每題3分)",
+        icon: "👹",
+        points: 3,
+        q: "第二大題第8題：有關「撫慰」的「撫」，正確的讀音及解釋為何？",
+        options: [
+            "①ㄈㄨˇ；養育、照顧",
+            "②ㄈㄨˇ；安慰",
+            "③ㄈㄨˇ；輕輕的摸",
+            "④ㄈㄨˊ；彈奏、撥弄"
+        ],
+        answer: 1,
+        exp: "「撫慰」的「撫」讀作「ㄈㄨˇ」，在「撫慰」一詞中是「安慰」的意思。"
+    },
+    {
+        section: "第二關：語意魔王城 (語意測驗・每題3分)",
+        icon: "👹",
+        points: 3,
+        q: "第二大題第9題：「姐姐每天會溫習上課的學習內容。」上面這句話的意思是什麼？",
+        options: [
+            "①姐姐每天會詢問老師教過的學習內容",
+            "②姐姐每天會複習老師教過的學習內容",
+            "③姐姐每天會預習老師還沒教過的學習內容",
+            "④姐姐每天會複習還沒教過的學習內容"
+        ],
+        answer: 1,
+        exp: "「溫習」就是複習已經學過的內容。"
+    },
+    {
+        section: "第二關：語意魔王城 (語意測驗・每題3分)",
+        icon: "👹",
+        points: 3,
+        q: "第二大題第10題：「□吃大餐□不想變胖的心情，讓我感到壓力好大。」□中填入下面哪個句型最適當？",
+        options: [
+            "①想要／卻又",
+            "②想／又",
+            "③不／又",
+            "④該／又"
+        ],
+        answer: 1,
+        exp: "對應《遇見自己》課文中的句型「想學習又貪玩的心情」，此處填入「想／又」（想吃大餐又不想變胖的心情）最貼合課文結構。"
+    },
+    {
+        section: "第二關：語意魔王城 (語意測驗・每題3分)",
+        icon: "👹",
+        points: 3,
+        q: "第二大題第11題：下面哪一個可以用「得意」來形容？",
+        options: [
+            "①和鄰居一起玩遊戲",
+            "②參加跑步比賽得到第一名",
+            "③在路上叫錯同學的名字",
+            "④廚房傳來一股香氣"
+        ],
+        answer: 1,
+        exp: "「得意」指稱心如意、感到驕傲滿足，參加比賽得第一名最符合。"
+    },
+    {
+        section: "第二關：語意魔王城 (語意測驗・每題3分)",
+        icon: "👹",
+        points: 3,
+        q: "第二大題第12題：「他在決賽時百發百中，順利奪下本屆射箭冠軍。」上面這句話的意思是什麼？",
+        options: [
+            "①他是射箭冠軍，所以百發百中",
+            "②他因為百發百中，所以才能成為射箭冠軍",
+            "③即使沒有百發百中，他也能成為射箭冠軍",
+            "④每一場比賽都要百發百中，才能成為射箭冠軍"
+        ],
+        answer: 1,
+        exp: "前半句「百發百中」是原因，後半句「順利奪下冠軍」是結果。"
+    },
+    {
+        section: "第二關：語意魔王城 (語意測驗・每題3分)",
+        icon: "👹",
+        points: 3,
+        q: "第二大題第13題：下面哪一個可以用「從容不迫」來形容？",
+        options: [
+            "①心情平緩的往臺上走去",
+            "②出門時忘記帶鑰匙又折返回家",
+            "③與朋友的約會即將遲到",
+            "④上臺表演摔倒而感到羞愧"
+        ],
+        answer: 0,
+        exp: "「從容不迫」形容鎮定沉著、不慌不忙的樣子。"
+    },
+    {
+        section: "第二關：語意魔王城 (語意測驗・每題3分)",
+        icon: "👹",
+        points: 3,
+        q: "第二大題第14題：有關「哄堂大笑」的「哄」，正確的讀音及解釋為何？",
+        options: [
+            "①ㄏㄨㄥ；許多人同時發出聲音",
+            "②ㄏㄨㄥˋ；許多人同時發出聲音",
+            "③ㄏㄨㄥˇ；欺騙、拐騙",
+            "④ㄏㄨㄥˇ；逗弄、撫慰"
+        ],
+        answer: 0,
+        exp: "「哄堂大笑」的「哄」讀作一聲「ㄏㄨㄥ」，指許多人同時發出聲音。"
+    },
+    {
+        section: "第二關：語意魔王城 (語意測驗・每題3分)",
+        icon: "👹",
+        points: 3,
+        q: "第二大題第15題：有關「魅力」的「魅」，正確的讀音及解釋為何？",
+        options: [
+            "①ㄇㄟˋ；能吸引人注意的力量",
+            "②ㄇㄟˋ；狡詐的、陰險的、不光明的",
+            "③ㄇㄟˋ；傳說中作祟害人的精怪",
+            "④ㄇㄛˋ；胡亂的、隨便的"
+        ],
+        answer: 2,
+        exp: "「魅」字本身的字義是「傳說中作祟害人的精怪」（讀音ㄇㄟˋ），而「魅力」整個語詞才是指能吸引人注意的力量。"
+    },
+    {
+        section: "第二關：語意魔王城 (語意測驗・每題3分)",
+        icon: "👹",
+        points: 3,
+        q: "第二大題第16題：「這家公司建造的房屋設計美觀、耐震又堅□，頗受顧客青睞。」□中應填入哪一個字？",
+        options: [
+            "①因",
+            "②困",
+            "③固",
+            "④囚"
+        ],
+        answer: 2,
+        exp: "房屋耐震又「堅固」，應填入「固」。"
+    },
+    {
+        section: "第二關：語意魔王城 (語意測驗・每題3分)",
+        icon: "👹",
+        points: 3,
+        q: "第二大題第17題：下面哪一個可以用「難堪」來形容？",
+        options: [
+            "①哥哥輕鬆解開困難的題目",
+            "②爸爸當眾被老闆大聲責罵",
+            "③媽媽有位住在菜市場旁的朋友",
+            "④妹妹覺得有趣而大笑不止"
+        ],
+        answer: 1,
+        exp: "「難堪」指困窘、尷尬、受窘，當眾被責罵會讓人感到難堪。"
+    },
+    {
+        section: "第二關：語意魔王城 (語意測驗・每題3分)",
+        icon: "👹",
+        points: 3,
+        q: "第二大題第18題：「用言語來調侃自己。」上面這句話的意思是什麼？",
+        options: [
+            "①說一些話來嘲諷自己",
+            "②說一些話來調適心情",
+            "③說一些話來調解糾紛",
+            "④說一些話來舒緩心情"
+        ],
+        answer: 0,
+        exp: "「調侃」是用言語戲弄、嘲笑的意思，調侃自己即是自我嘲諷（自嘲）。"
+    },
+    {
+        section: "第二關：語意魔王城 (語意測驗・每題3分)",
+        icon: "👹",
+        points: 3,
+        q: "第二大題第19題：下面哪一個可以用「改良」來形容？",
+        options: [
+            "①牛頓發現萬有引力原理",
+            "②豬農調整飼料配方後能更提升豬隻成長效率",
+            "③將舊的電視機回收換取現金",
+            "④盆栽裡的植物發芽了"
+        ],
+        answer: 1,
+        exp: "「改良」是指去掉事物的缺點，使之更加良好，調整配方提升效率即是改良。"
+    },
+    {
+        section: "第二關：語意魔王城 (語意測驗・每題3分)",
+        icon: "👹",
+        points: 3,
+        q: "第二大題第20題：下面哪一個可以用「孤單」來形容？",
+        options: [
+            "①電話鈴聲突然響起",
+            "②市場裡擁擠的人潮",
+            "③下課時同學都不跟我一起玩",
+            "④貼滿獎狀的牆壁"
+        ],
+        answer: 2,
+        exp: "下課時沒有同學一起玩，會讓人感到孤單寂寞。"
+    },
+    {
+        section: "第二關：語意魔王城 (語意測驗・每題3分)",
+        icon: "👹",
+        points: 3,
+        q: "第二大題第21題：「妹妹的資質聰明，口才也很好。」上面這句話的意思是什麼？",
+        options: [
+            "①妹妹比較乖巧懂事",
+            "②妹妹很聰明，但口語表達能力弱",
+            "③妹妹比較愚鈍，不會表達自己的想法",
+            "④妹妹很聰明，也很會表達自己的想法"
+        ],
+        answer: 3,
+        exp: "「資質聰明」代表很聰明，「口才很好」代表很會表達自己的想法。"
+    },
+    {
+        section: "第二關：語意魔王城 (語意測驗・每題3分)",
+        icon: "👹",
+        points: 3,
+        q: "第二大題第22題：「街友都是因為懶惰才會露宿街頭的想法，其實是種□□，與他們對話後會發現許多想像之外的故事。」□□中應填入哪個語詞？",
+        options: [
+            "①成見",
+            "②意見",
+            "③成功",
+            "④失誤"
+        ],
+        answer: 0,
+        exp: "先入為主、主觀偏頗的刻板看法稱為「成見」。"
+    }
+];
+
+let currentIdx = 0;
+let score = 0;
+let selectedOption = null;
+let answered = false;
+const answeredStatus = new Array(questions.length).fill(false);
+
+// 合成音效 (Web Audio API)
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+function playSound(type) {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    const now = audioCtx.currentTime;
+
+    if (type === 'correct') {
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(523.25, now); // C5
+        osc.frequency.setValueAtTime(659.25, now + 0.1); // E5
+        osc.frequency.setValueAtTime(783.99, now + 0.2); // G5
+        gain.gain.setValueAtTime(0.25, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.45);
+        osc.start(now);
+        osc.stop(now + 0.45);
+    } else if (type === 'wrong') {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(220, now);
+        osc.frequency.setValueAtTime(160, now + 0.15);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+        osc.start(now);
+        osc.stop(now + 0.35);
+    }
+}
+
+function initJumpMenu() {
+    const sel = document.getElementById("jump-select");
+    sel.innerHTML = "";
+    questions.forEach((item, idx) => {
+        const opt = document.createElement("option");
+        opt.value = idx;
+        const label = idx < 17 ? `一、選擇 第 ${idx + 1} 題` : `二、語意 第 ${idx - 16} 題`;
+        opt.textContent = label;
+        sel.appendChild(opt);
+    });
+}
+
+function jumpToQuestion(idx) {
+    window.speechSynthesis.cancel();
+    currentIdx = parseInt(idx, 10);
+    loadQuestion();
+}
+
+function speakText(text) {
+    if (!('speechSynthesis' in window)) {
+        alert("您的瀏覽器不支援語音報讀功能！");
+        return;
+    }
+    window.speechSynthesis.cancel();
+
+    // 將注音與特殊符號轉換為自然語音可讀的字詞，確保報讀清晰
+    const cleanText = text
+        .replace(/□□/g, "空格")
+        .replace(/□/g, "空格")
+        .replace(/①/g, "選項一，")
+        .replace(/②/g, "選項二，")
+        .replace(/③/g, "選項三，")
+        .replace(/④/g, "選項四，")
+        .replace(/→/g, " 變成 ")
+        .replace(/／/g, "，")
+        .replace(/ㄈㄣˋ/g, "憤（四聲憤）")
+        .replace(/ㄆㄣ/g, "噴（一聲噴）")
+        .replace(/ㄈㄣˇ/g, "粉（三聲粉）")
+        .replace(/ㄏㄨㄤˇ/g, "恍（三聲恍）")
+        .replace(/ㄏㄨㄤˋ/g, "晃（四聲晃）")
+        .replace(/ㄈㄨˇ/g, "撫（三聲撫）")
+        .replace(/ㄈㄨˊ/g, "福（二聲福）")
+        .replace(/ㄏㄨㄥˋ/g, "鬨（四聲鬨）")
+        .replace(/ㄏㄨㄥˇ/g, "哄（三聲哄）")
+        .replace(/ㄏㄨㄥ/g, "轟（一聲轟）")
+        .replace(/ㄇㄟˋ/g, "魅（四聲魅）")
+        .replace(/ㄇㄛˋ/g, "末（四聲末）");
+
+    const utter = new SpeechSynthesisUtterance(cleanText);
+    utter.lang = "zh-TW";
+    const rateSelect = document.getElementById("tts-rate");
+    utter.rate = rateSelect ? parseFloat(rateSelect.value) : 0.9;
+    window.speechSynthesis.speak(utter);
+}
+
+function speakQuestion() {
+    speakText(questions[currentIdx].q);
+}
+
+function updateHeroTitle() {
+    const titleEl = document.getElementById("hero-title");
+    if (score >= 90) titleEl.textContent = "👑 傳說語文聖騎士";
+    else if (score >= 70) titleEl.textContent = "⚔️ 皇家大劍師";
+    else if (score >= 40) titleEl.textContent = "🛡️ 菁英冒險者";
+    else titleEl.textContent = "🌱 見習冒險者";
+}
+
+function loadQuestion() {
+    answered = false;
+    selectedOption = null;
+    const item = questions[currentIdx];
+
+    document.getElementById("jump-select").value = currentIdx;
+    document.getElementById("progress-text").textContent = `${currentIdx + 1} / ${questions.length}`;
+    document.getElementById("monster-icon").textContent = item.icon;
+    document.getElementById("monster-name").textContent = item.section;
+    document.getElementById("question-text").textContent = item.q;
+
+    // 更新魔王血量條 (隨進度遞減)
+    const remainingRatio = Math.max(5, Math.round(((questions.length - currentIdx) / questions.length) * 100));
+    document.getElementById("hp-bar").style.width = remainingRatio + "%";
+
+    const optionsContainer = document.getElementById("options-container");
+    optionsContainer.innerHTML = "";
+
+    item.options.forEach((opt, idx) => {
+        const row = document.createElement("div");
+        row.className = "option-row";
+
+        const optBtn = document.createElement("button");
+        optBtn.className = "option-btn";
+        optBtn.textContent = opt;
+        optBtn.onclick = () => selectOption(idx);
+
+        const ttsBtn = document.createElement("button");
+        ttsBtn.className = "tts-btn";
+        ttsBtn.innerHTML = "🔊 報讀";
+        ttsBtn.onclick = (e) => {
+            e.stopPropagation();
+            speakText(opt);
+        };
+
+        row.appendChild(optBtn);
+        row.appendChild(ttsBtn);
+        optionsContainer.appendChild(row);
+    });
+
+    document.getElementById("submit-btn").disabled = true;
+    document.getElementById("submit-btn").style.display = "block";
+    document.getElementById("next-btn").style.display = "none";
+    const fb = document.getElementById("feedback-box");
+    fb.style.display = "none";
+}
+
+function selectOption(idx) {
+    if (answered) return;
+    selectedOption = idx;
+    const btns = document.querySelectorAll(".option-btn");
+    btns.forEach((b, i) => {
+        b.classList.toggle("selected", i === idx);
+    });
+    document.getElementById("submit-btn").disabled = false;
+}
+
+function confirmAnswer() {
+    if (selectedOption === null || answered) return;
+    answered = true;
+    const item = questions[currentIdx];
+    const btns = document.querySelectorAll(".option-btn");
+    const fb = document.getElementById("feedback-box");
+    const monsterIcon = document.getElementById("monster-icon");
+
+    if (selectedOption === item.answer) {
+        playSound('correct');
+        monsterIcon.classList.add("monster-hit");
+        setTimeout(() => monsterIcon.classList.remove("monster-hit"), 450);
+
+        if (!answeredStatus[currentIdx]) {
+            score += item.points;
+            answeredStatus[currentIdx] = true;
+        }
+        document.getElementById("score-text").textContent = score;
+        updateHeroTitle();
+        btns[selectedOption].classList.add("correct");
+        fb.className = "feedback-box feedback-correct";
+        fb.innerHTML = `✨ 攻擊成功！獲得 ${item.points} 積分！<br>💡 解析：${item.exp}`;
+        speakText(`答對了！獲得 ${item.points} 分。${item.exp}`);
+    } else {
+        playSound('wrong');
+        btns[selectedOption].classList.add("wrong");
+        btns[item.answer].classList.add("correct");
+        fb.className = "feedback-box feedback-wrong";
+        fb.innerHTML = `💥 攻擊失誤！正確答案為：${item.options[item.answer]}<br>💡 解析：${item.exp}`;
+        speakText(`答錯了！正確答案是 ${item.options[item.answer]}。${item.exp}`);
+    }
+
+    fb.style.display = "block";
+    document.getElementById("submit-btn").style.display = "none";
+    const nextBtn = document.getElementById("next-btn");
+    nextBtn.style.display = "block";
+    if (currentIdx === questions.length - 1) {
+        nextBtn.textContent = "🏆 查看冒險總結成績";
+    } else {
+        nextBtn.textContent = "➡️ 前往下一關";
+    }
+}
+
+function nextQuestion() {
+    window.speechSynthesis.cancel();
+    if (currentIdx < questions.length - 1) {
+        currentIdx++;
+        loadQuestion();
+    } else {
+        showFinalSummary();
+    }
+}
+
+function showFinalSummary() {
+    const gameBox = document.getElementById("game-box");
+    let rank = "🌱 努力不懈的見習勇者";
+    if (score >= 90) rank = "👑 傳說級國語文聖騎士";
+    else if (score >= 75) rank = "⚔️ 榮耀皇家大劍師";
+    else if (score >= 60) rank = "🛡️ 堅毅冒險勇者";
+
+    gameBox.innerHTML = `
+        <div style="text-align:center; padding: 35px 15px;">
+            <div style="font-size: 5rem; margin-bottom: 10px;">🏆</div>
+            <h1 style="color: var(--border-gold); font-size: 2.3rem;">冒險試煉完成！</h1>
+            <p style="font-size: 1.6rem; margin: 18px 0;">最終累計積分：<span style="color:var(--border-gold); font-size: 2.4rem; font-weight:bold;">${score}</span> / 100 分</p>
+            <p style="font-size: 1.5rem; color: #7bed9f; margin-bottom: 35px;">獲得稱號：${rank}</p>
+            <button class="submit-btn" style="max-width:320px; margin: 0 auto;" onclick="location.reload()">🔄 重新展開冒險</button>
+        </div>
+    `;
+    speakText(`恭喜完成冒險試煉！您的最終累計積分為 ${score} 分，獲得稱號：${rank}`);
+}
+
+window.onload = () => {
+    initJumpMenu();
+    loadQuestion();
+};
+</script>
+
+</body>
+</html>
